@@ -14,23 +14,46 @@ namespace BackendProiect.Controllers
     {
         [HttpGet]
         [Route("GetScrappResult")]
-        public async Task<List<string>> GetScrappResult()
+        public async Task<List<Movie>> GetScrappResult()
         {
-            List<string> Datalst = new List<string>();
 
             HttpClient hc = new HttpClient();
-            HttpResponseMessage result = await hc.GetAsync($"https://ro.wikipedia.org/wiki/List%C4%83_de_r%C3%A2uri_din_America");
+            HttpResponseMessage result = await hc.GetAsync($"https://en.wikipedia.org/wiki/Marvel_Cinematic_Universe");
             Stream stream = await result.Content.ReadAsStreamAsync();
             HtmlDocument doc = new HtmlDocument();
             doc.Load(stream);
 
-            var HeaderNames = doc.DocumentNode.SelectNodes("//span[@class='mw-headline']");
+            var Years = doc.DocumentNode.SelectNodes("//table[@class='wikitable']/tbody/tr/th[@scope='row']");
+            var Names = doc.DocumentNode.SelectNodes("//table[@class='wikitable']/tbody/tr/td/i");
 
-            foreach (var HeaderName in HeaderNames)
+            var tuples = Years.Zip(Names, (yearNode, nameNode) => Tuple.Create(yearNode.InnerText, nameNode));
+
+
+            var Datalst = new List<Movie>();
+
+            /*foreach (var year in Years)
+             {
+                 Datalst.Add(new Movie{ Year = year.InnerHtml});
+             }
+
+             foreach (var name in Names)
+             {
+                 Datalst.Add(new Movie { Name = name.InnerHtml });
+             }*/
+
+            foreach (var tuple in tuples)
             {
-                Datalst.Add(HeaderName.InnerText);
+                Datalst.Add(new Movie { Year = tuple.Item1, Name = tuple.Item2.InnerText });
             }
+
             return Datalst;
+        }
+
+        public class Movie
+        {
+            public string? Name { get; set; }
+            public string? Year { get; set; }
+
         }
 
     }
