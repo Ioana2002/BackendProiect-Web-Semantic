@@ -9,6 +9,7 @@ using System.IO;
 
 namespace BackendProiect.Controllers
 {
+    [Route("[controller]")]
     [ApiController]
     public class ProjectController : Controller
     {
