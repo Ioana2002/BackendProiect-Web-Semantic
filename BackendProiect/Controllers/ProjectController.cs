@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Text;
 using System.IO;
+using Newtonsoft.Json;
+using Microsoft.Extensions.Hosting;
 
 namespace BackendProiect.Controllers
 {
@@ -57,5 +59,33 @@ namespace BackendProiect.Controllers
 
         }
 
+        [HttpPost]
+        [Route("UploadMovie")]
+        public async Task<IActionResult> PostJson([FromBody] Movie movie)
+        {
+            try
+            {
+                string apiUrl = "http://localhost:4000/movies";
+
+                var jsonRequestBody = Newtonsoft.Json.JsonConvert.SerializeObject(movie);
+
+                using var httpClient = new HttpClient();
+
+                var content = new StringContent(jsonRequestBody, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = await httpClient.PostAsync(apiUrl, content);
+
+                string responseContent = await response.Content.ReadAsStringAsync();
+
+                return Ok(responseContent);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
     }
+
+ 
 }
