@@ -61,28 +61,45 @@ namespace BackendProiect.Controllers
 
         [HttpPost]
         [Route("UploadMovie")]
-        public async Task<IActionResult> PostJson([FromBody] Movie movie)
+        public async Task<IActionResult> PostJson([FromBody] Movie[] movies)
         {
             try
             {
-                string apiUrl = "http://localhost:4000/movies";
+                string responseData = "";
+                foreach (Movie movie in movies)
+                {
+                    string apiUrl = "http://localhost:4000/movies";
 
-                var jsonRequestBody = Newtonsoft.Json.JsonConvert.SerializeObject(movie);
+                    var jsonRequestBody = Newtonsoft.Json.JsonConvert.SerializeObject(movie);
 
-                using var httpClient = new HttpClient();
+                    using var httpClient = new HttpClient();
 
-                var content = new StringContent(jsonRequestBody, Encoding.UTF8, "application/json");
+                    var content = new StringContent(jsonRequestBody, Encoding.UTF8, "application/json");
 
-                HttpResponseMessage response = await httpClient.PostAsync(apiUrl, content);
+                    HttpResponseMessage response = await httpClient.PostAsync(apiUrl, content);
 
-                string responseContent = await response.Content.ReadAsStringAsync();
+                    responseData = await response.Content.ReadAsStringAsync();
+                }
 
-                return Ok(responseContent);
+                return Ok(responseData);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        [HttpGet]
+        [Route("GetMovieJson")]
+        public async Task<IActionResult> GetMovieJson()
+        {
+            HttpClient httpClient = new HttpClient();
+            var response = await httpClient.GetAsync("http://localhost:4000/movies");
+
+            var jsonString = await response.Content.ReadAsStringAsync();
+
+            return Ok(jsonString);
+            
         }
 
     }
