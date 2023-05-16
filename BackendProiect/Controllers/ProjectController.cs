@@ -15,6 +15,7 @@ namespace BackendProiect.Controllers
     [ApiController]
     public class ProjectController : Controller
     {
+
         [HttpGet]
         [Route("GetScrappResult")]
         public async Task<List<Movie>> GetScrappResult()
@@ -101,6 +102,77 @@ namespace BackendProiect.Controllers
             return Ok(jsonString);
             
         }
+
+        [HttpPost]
+        [Route("PostRdfServer")]
+        public async Task<IActionResult> PostRdfServer([FromBody] FrontEndDataModel frontEndData)
+        {
+            try
+            {
+                HttpClient httpclient = new HttpClient();
+
+                string rdfData = GenerateRDFData(frontEndData);
+
+                string rdfServerUrl = "http://localhost:8080/rdf4j-server/repositories/grafexamen/statements";
+                
+                var content = new StringContent(rdfData, Encoding.UTF8, "application/sparql-update");
+
+                string requestUrl = $"{rdfServerUrl}?update=";
+
+                HttpResponseMessage response = await httpclient.PostAsync(requestUrl, content);
+
+                return Ok(response);
+
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+        }
+
+        private string GenerateRDFData(FrontEndDataModel frontEndData)
+        {
+            
+            string rdfData = $"prefix : <http://ioana.ro#> INSERT DATA {{ graph :grafNou {{ :{frontEndData.Subject} :{frontEndData.Predicate} :{frontEndData.Object} }} }}";
+
+            return rdfData;
+        }
+
+        public class FrontEndDataModel
+        {
+            public string Subject { get; set; }
+            public string Predicate { get; set; }
+            public string Object { get; set; }
+        }
+
+        [HttpGet]
+        [Route("GetRdfServer")]
+        public async Task<IActionResult> GetRdfServer()
+        {
+            try
+            {
+                 HttpClient httpClient = new HttpClient();
+
+                 string rdfServerUrl = "http://localhost:8080/rdf4j-server/repositories/grafexamen";
+                 string query = "SELECT ?subject ?predicate ?object WHERE { ?subject ?predicate ?object }";
+
+                 string requestUrl = $"{rdfServerUrl}?query={Uri.EscapeDataString(query)}";
+
+                 HttpResponseMessage response = await httpClient.GetAsync(requestUrl);
+
+                 var responseData = await response.Content.ReadAsStringAsync();
+
+                 return Ok(responseData);  
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        
 
     }
 
