@@ -8,6 +8,7 @@ using System.Text;
 using System.IO;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json.Linq;
 
 namespace BackendProiect.Controllers
 {
@@ -101,6 +102,61 @@ namespace BackendProiect.Controllers
 
             return Ok(jsonString);
             
+        }
+
+        [HttpDelete]
+        [Route("DeleteMovie")]
+        public async Task<IActionResult> DeleteMovie([FromBody] MovieData data)
+        {
+            try
+            {
+                
+                if (string.IsNullOrEmpty(data.Name))
+                {
+                    return BadRequest("Invalid name");
+                }
+                else
+                {
+                    string apiUrl = "http://localhost:4000/movies/";
+
+                    using var httpClient = new HttpClient();
+
+                    var jsonRequestBody = JsonConvert.SerializeObject(data);
+                    var content = new StringContent(jsonRequestBody, Encoding.UTF8, "application/json");
+
+                    var request = new HttpRequestMessage
+                    {
+                        Method = HttpMethod.Delete,
+                        RequestUri = new Uri(apiUrl),
+                        Content = content
+                    };
+
+                    HttpResponseMessage response = await httpClient.SendAsync(request);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return Ok();
+                    }
+                    else if (response.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        return NotFound("Movie not found");
+                    }
+                    else
+                    {
+                        return BadRequest("Failed to delete movie");
+                    }
+                }
+                
+               
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        public class MovieData
+        {
+            public string Name { get; set; }
         }
 
         [HttpPost]
