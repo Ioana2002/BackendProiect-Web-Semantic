@@ -117,7 +117,7 @@ namespace BackendProiect.Controllers
                 }
                 else
                 {
-                    string apiUrl = "http://localhost:4000/movies/";
+                    string apiUrl = "http://localhost:4000/movies?Name={data.Name}";
 
                     using var httpClient = new HttpClient();
 
